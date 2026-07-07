@@ -3,7 +3,7 @@
 Experimental Unity bindings for [MapLibre Native](https://github.com/maplibre/maplibre-native), built on top of the
 [maplibre-native-ffi](https://github.com/maplibre/maplibre-native-ffi) C API.
 
-**Status: Experimental (v0.1 MVP).** APIs are unstable and may change without notice.
+**Status: Experimental (v0.3.0).** APIs are unstable and may change without notice.
 
 ## Supported Platforms
 
@@ -64,6 +64,21 @@ rendered frame back to the CPU as premultiplied RGBA8, and uploads it into a `Te
 integration simple at the cost of a CPU readback copy every frame - acceptable for the v0.1 MVP, but a likely target
 for a future GPU-side (D3D11/interop) fast path.
 
+## 3D Terrain + PLATEAU (v0.3.0)
+
+On top of the existing 2D `MapLibreMapView`, the package now also includes an experimental 3D mode built from two
+Japan-specific open data sources:
+
+- **3D terrain** (`GsiTerrainLayer`) from GSI (Geospatial Information Authority of Japan) elevation (`dem_png`) and
+  aerial photo (`seamlessphoto`) tiles.
+- **3D buildings** (`PlateauTilesetLayer`) from [Project PLATEAU](https://www.mlit.go.jp/plateau/)'s 3D city models,
+  streamed as 3D Tiles 1.0 / b3dm and loaded via glTFast.
+
+See the [package README](Packages/com.fukuda-a-hu.maplibre-unity/README.md#3d-terrain--plateau-v030) for usage,
+required dependencies (`com.unity.cloud.gltfast`, `com.unity.cloud.draco`, `com.unity.nuget.newtonsoft-json` -
+resolved automatically via UPM), and data source attribution requirements. Import the **3D Terrain + PLATEAU
+(Japan)** sample from the Package Manager's Samples tab to try it.
+
 ## License
 
 This repository's own source code is licensed under the [MIT License](LICENSE).
@@ -78,3 +93,10 @@ MapLibre Native を Unity から使うための実験的なプラグインです
 Unity の `Texture2D` に転送する方式を採用しています。`MapLibreMapView` コンポーネントを GameObject に
 アタッチするだけで最小構成の地図表示が可能です。同梱のネイティブ DLL は BSD-2-Clause ライセンスであり、
 本体コードとはライセンスが異なる点に注意してください(詳細は `THIRD_PARTY_NOTICES.md` を参照)。
+
+v0.3.0 では、国土地理院(GSI)の標高タイル・写真タイルによる3D地形表示(`GsiTerrainLayer`)と、
+Project PLATEAU(国土交通省)の3D都市モデルを 3D Tiles(b3dm)形式でストリーミング表示する建物レイヤー
+(`PlateauTilesetLayer`)を追加しました。既存の2D地図機能には変更を加えていません。glTFast / Draco /
+Newtonsoft.Json はパッケージの依存関係として宣言されており、UPM が自動的に解決します。国土地理院タイルは
+利用時に出典表記が必要、PLATEAU データは CC BY 4.0 相当のオープンデータですが同様に出典表記が必要です。
+また両データの配信サービスはいずれも試験運用中で無保証である点にご注意ください。

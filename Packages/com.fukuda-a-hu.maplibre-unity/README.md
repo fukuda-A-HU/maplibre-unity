@@ -21,5 +21,46 @@ once the map starts rendering.
 - `Runtime/Native/` - P/Invoke declarations, native structs/enums, and the WGL shared-context helper.
 - `Runtime/Plugins/Windows/x86_64/maplibre-native-c.dll` - bundled native binary (see `THIRD_PARTY_NOTICES.md` at the
   repository root for license information).
+- `Runtime/Geo/GeoMath.cs` - WGS84/ECEF/ENU geodesy and Web Mercator tile math shared by the 3D terrain and PLATEAU
+  layers.
+- `Runtime/Terrain/GsiTerrainLayer.cs` - `MonoBehaviour` that streams GSI elevation + aerial photo tiles into a
+  textured 3D terrain mesh.
+- `Runtime/Plateau/B3dm.cs`, `Runtime/Plateau/PlateauTilesetLayer.cs` - b3dm parsing and a `MonoBehaviour` that
+  streams PLATEAU 3D Tiles buildings via glTFast.
 - `Samples~/BasicMap` - the "Basic Map" sample (see the Samples tab in Package Manager), a full-screen `RawImage`
   demo with mouse-drag panning and scroll-wheel zooming.
+- `Samples~/PlateauTerrain3D` - the "3D Terrain + PLATEAU (Japan)" sample (see below).
+
+## 3D Terrain + PLATEAU (v0.3.0)
+
+`GsiTerrainLayer` and `PlateauTilesetLayer` add an experimental 3D mode on top of the existing 2D map, using two
+Japan-specific open data sources:
+
+- **Terrain**: [GSI (Geospatial Information Authority of Japan)](https://www.gsi.go.jp/) `dem_png` elevation tiles
+  and `seamlessphoto` aerial photo tiles, streamed as a small grid of textured meshes in a local East-North-Up
+  frame centered on a configurable geodetic origin.
+- **Buildings**: [Project PLATEAU](https://www.mlit.go.jp/plateau/) 3D city models, published as 3D Tiles 1.0 /
+  b3dm, streamed and positioned using each tile's `CESIUM_RTC` center.
+
+### Usage
+
+1. Open **Window > Package Manager**, select **MapLibre for Unity**, open the **Samples** tab, and import
+   **3D Terrain + PLATEAU (Japan)**.
+2. Open the imported `PlateauTerrain3D.unity` scene and press **Play**. `com.unity.cloud.gltfast`,
+   `com.unity.cloud.draco`, and `com.unity.nuget.newtonsoft-json` are declared as package dependencies and will be
+   resolved automatically by the Unity Package Manager the first time the package is added - no manual setup is
+   required.
+3. To add either layer to your own scene, add a `GsiTerrainLayer` and/or `PlateauTilesetLayer` component
+   (`MapLibre.Unity.Terrain` / `MapLibre.Unity.Plateau` namespaces) to a `GameObject` and configure the origin
+   latitude/longitude in the Inspector.
+
+### Data sources and terms of use
+
+- **GSI tiles**: free to use, but the [GSI terms of use](https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html)
+  require attribution (e.g. "国土地理院" / "GSI Japan") wherever the tiles are displayed. The bundled sample
+  includes an on-screen attribution label.
+- **PLATEAU data**: published by MLIT (Japan's Ministry of Land, Infrastructure, Transport and Tourism) under a
+  CC BY 4.0-equivalent open license; attribution to Project PLATEAU is required.
+- Both tile services used by this package (`cyberjapandata.gsi.go.jp` and `assets.cms.plateau.reearth.io`) are
+  provided on a best-effort, no-warranty basis by their respective operators - do not rely on them for
+  production-critical availability.
