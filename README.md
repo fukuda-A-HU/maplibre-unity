@@ -30,13 +30,23 @@ https://github.com/fukuda-A-HU/maplibre-unity.git?path=Packages/com.fukuda-a-hu.
 
 ## Quick Start
 
+The fastest way to see the plugin working is to import the bundled sample:
+
+1. Open **Window > Package Manager**, select **MapLibre for Unity** in the package list.
+2. Open the **Samples** tab and click **Import** next to **Basic Map**.
+3. Open the imported `BasicMap.unity` scene (under `Assets/Samples/MapLibre for Unity/.../Basic Map/`) and press
+   **Play**. You should see a full-screen map with mouse-drag panning and scroll-wheel zooming.
+
+To add the map to your own scene instead:
+
 1. Create an empty `GameObject` in your scene.
 2. Add the `MapLibreMapView` component (`MapLibre.Unity` namespace) to it.
 3. Configure `Style Url`, `Width`/`Height`, and the initial `Latitude`/`Longitude`/`Zoom` in the Inspector.
 4. Read the `Texture` property at runtime (e.g. from a script or `RawImage`) once the map starts rendering.
 
-See `Assets/MapLibreDemo/MapLibreDemoBootstrap.cs` for a minimal end-to-end example that renders the map onto a
-full-screen `RawImage` and supports mouse-drag panning and scroll-wheel zooming.
+**Repository developers:** the sample's actual source lives at
+`Packages/com.fukuda-a-hu.maplibre-unity/Samples~/BasicMap` (the trailing `~` hides it from the Unity Editor
+outside of the Package Manager import flow, per Unity's samples convention).
 
 ## Architecture
 
