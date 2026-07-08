@@ -1,3 +1,4 @@
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 using System;
 using System.Runtime.InteropServices;
 
@@ -5,6 +6,9 @@ using System.Runtime.InteropServices;
 // FFI can create its own OpenGL context that shares the same share-group (via mln_wgl_context_descriptor). This
 // context is never made current for actual rendering by this plugin - it exists only to give the native side a
 // device context (HDC) and a share context (HGLRC) to join.
+//
+// Gated to Windows builds only: this type P/Invokes into user32.dll / gdi32.dll / opengl32.dll, which do not
+// exist on other platforms (e.g. Android). See EglSharedContext.cs for the Android/EGL equivalent.
 namespace MapLibre.Unity.Native
 {
     internal sealed unsafe class WglSharedContext : IDisposable
@@ -308,3 +312,4 @@ namespace MapLibre.Unity.Native
         private static extern bool wglMakeCurrent(IntPtr hdc, IntPtr hglrc);
     }
 }
+#endif

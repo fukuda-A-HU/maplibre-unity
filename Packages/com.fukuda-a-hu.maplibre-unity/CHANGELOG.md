@@ -2,6 +2,23 @@
 
 All notable changes to this package will be documented in this file.
 
+## [0.4.0] - 2026-07-08
+
+### Added
+
+- Android (arm64-v8a) support in the C# layer via a new EGL shared context
+  (`EglSharedContext`). Native binary `libmaplibre-native-c.so` is **not**
+  bundled and must be built from maplibre-native-ffi and placed under
+  `Runtime/Plugins/Android/arm64-v8a/` - see that folder's README.md.
+- `MapLibreMapHandle.AttachTexture` now selects WGL (Windows) or EGL (Android)
+  at compile time via preprocessor directives.
+
+### Changed
+
+- `MapLibreMapView` no longer disables itself on Android.
+- `WglSharedContext` compilation gated to Windows only so Android/other builds
+  don't attempt to link against opengl32.dll / user32.dll / gdi32.dll.
+
 ## [0.2.0] - 2026-07-07
 
 ### Added

@@ -1,9 +1,9 @@
 {
   "name": "com.fukuda-a-hu.maplibre-unity",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "displayName": "MapLibre for Unity",
   "unity": "2021.3",
-  "description": "Experimental MapLibre Native bindings for Unity (Windows x64 only, MVP).",
+  "description": "Experimental MapLibre Native bindings for Unity (Windows x64 supported; Android arm64 experimental, native binary not bundled).",
   "keywords": [
     "maplibre",
     "map",

@@ -1,6 +1,8 @@
 # MapLibre for Unity (Package)
 
-Experimental MapLibre Native bindings for Unity. Windows x64 only in this MVP release.
+Experimental MapLibre Native bindings for Unity. Windows x64 is supported; Android arm64 is experimental
+(the C# layer is implemented, but the native binary is not bundled - see
+[Android](#android-arm64-experimental) below).
 
 See the [repository README](https://github.com/fukuda-A-HU/maplibre-unity) for installation instructions, a quick
 start guide, and architecture notes.
@@ -18,9 +20,12 @@ once the map starts rendering.
 
 - `Runtime/MapLibreMapView.cs` - `MonoBehaviour` that renders a MapLibre map into a `Texture2D`.
 - `Runtime/MapLibreMapHandle.cs` - Unity-independent core wrapping the native `mln_*` C API lifecycle.
-- `Runtime/Native/` - P/Invoke declarations, native structs/enums, and the WGL shared-context helper.
+- `Runtime/Native/` - P/Invoke declarations, native structs/enums, and the WGL (Windows) / EGL (Android)
+  shared-context helpers.
 - `Runtime/Plugins/Windows/x86_64/maplibre-native-c.dll` - bundled native binary (see `THIRD_PARTY_NOTICES.md` at the
   repository root for license information).
+- `Runtime/Plugins/Android/arm64-v8a/` - Android native binary directory. **Not bundled** - see
+  [Android](#android-arm64-experimental) below.
 - `Runtime/Geo/GeoMath.cs` - WGS84/ECEF/ENU geodesy and Web Mercator tile math shared by the 3D terrain and PLATEAU
   layers.
 - `Runtime/Terrain/GsiTerrainLayer.cs` - `MonoBehaviour` that streams GSI elevation + aerial photo tiles into a
@@ -64,3 +69,14 @@ Japan-specific open data sources:
 - Both tile services used by this package (`cyberjapandata.gsi.go.jp` and `assets.cms.plateau.reearth.io`) are
   provided on a best-effort, no-warranty basis by their respective operators - do not rely on them for
   production-critical availability.
+
+## Android arm64 (Experimental)
+
+As of v0.4.0, the C# layer supports Android via an EGL shared context (`EglSharedContext`), mirroring the
+Windows/WGL path (`WglSharedContext`). `MapLibreMapHandle` selects WGL or EGL at compile time depending on the
+build target.
+
+**The native binary is not bundled.** `libmaplibre-native-c.so` must be built from
+[maplibre-native-ffi](https://github.com/maplibre/maplibre-native-ffi) and placed under
+`Runtime/Plugins/Android/arm64-v8a/` - see that folder's `README.md` for build instructions and the required
+Unity PluginImporter settings.

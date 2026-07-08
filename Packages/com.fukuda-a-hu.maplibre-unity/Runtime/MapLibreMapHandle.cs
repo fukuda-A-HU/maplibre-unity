@@ -19,7 +19,11 @@ namespace MapLibre.Unity
         // Per-frame operations (Step) are logged instead of thrown, since a transient failure there should not
         // crash the render loop - the caller just tries again next frame.
 
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
         private WglSharedContext _wglContext;
+#elif UNITY_ANDROID && !UNITY_EDITOR
+        private EglSharedContext _eglContext;
+#endif
         private mln_runtime* _runtime;
         private mln_map* _map;
         private mln_render_session* _session;
@@ -40,7 +44,13 @@ namespace MapLibre.Unity
             var handle = new MapLibreMapHandle();
             try
             {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
                 handle._wglContext = new WglSharedContext();
+#elif UNITY_ANDROID && !UNITY_EDITOR
+                handle._eglContext = new EglSharedContext();
+#else
+                throw new PlatformNotSupportedException("MapLibre for Unity currently supports Windows x64 and Android only.");
+#endif
 
                 handle.CreateRuntime();
                 handle.CreateMap(width, height, scaleFactor);
@@ -102,10 +112,19 @@ namespace MapLibre.Unity
             descriptor.extent.width = (uint)width;
             descriptor.extent.height = (uint)height;
             descriptor.extent.scale_factor = scaleFactor;
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
             descriptor.context.platform = mln_opengl_context_platform.MLN_OPENGL_CONTEXT_PLATFORM_WGL;
             descriptor.context.data.wgl.device_context = (void*)_wglContext.DeviceContext;
             descriptor.context.data.wgl.share_context = (void*)_wglContext.ShareContext;
             descriptor.context.data.wgl.get_proc_address = null;
+#elif UNITY_ANDROID && !UNITY_EDITOR
+            descriptor.context.platform = mln_opengl_context_platform.MLN_OPENGL_CONTEXT_PLATFORM_EGL;
+            descriptor.context.data.egl.size = (uint)sizeof(mln_egl_context_descriptor);
+            descriptor.context.data.egl.display = (void*)_eglContext.Display;
+            descriptor.context.data.egl.config = (void*)_eglContext.Config;
+            descriptor.context.data.egl.share_context = (void*)_eglContext.ShareContext;
+            descriptor.context.data.egl.get_proc_address = null;
+#endif
 
             mln_render_session* session;
             mln_status status = NativeMethods.mln_opengl_owned_texture_attach(_map, &descriptor, &session);
@@ -373,8 +392,13 @@ namespace MapLibre.Unity
                 _runtime = null;
             }
 
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
             _wglContext?.Dispose();
             _wglContext = null;
+#elif UNITY_ANDROID && !UNITY_EDITOR
+            _eglContext?.Dispose();
+            _eglContext = null;
+#endif
 
             GC.SuppressFinalize(this);
         }
