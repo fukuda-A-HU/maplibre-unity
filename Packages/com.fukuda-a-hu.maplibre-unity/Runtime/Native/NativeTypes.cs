@@ -275,6 +275,14 @@ namespace MapLibre.Unity.Native
         }
     }
 
+    // iOS is Metal-only (no OpenGL/EGL path), so this descriptor is separate from mln_opengl_context_descriptor
+    // rather than another union member of it.
+    internal unsafe partial struct mln_metal_context_descriptor
+    {
+        public uint size;
+        public void* device; // id<MTLDevice> (borrowed; retained by the native side when required)
+    }
+
     // ---- texture.h --------------------------------------------------------------------------------------------------
 
     internal partial struct mln_opengl_owned_texture_descriptor
@@ -282,6 +290,13 @@ namespace MapLibre.Unity.Native
         public uint size;
         public mln_render_target_extent extent;
         public mln_opengl_context_descriptor context; // platform = WGL, data.wgl populated
+    }
+
+    internal partial struct mln_metal_owned_texture_descriptor
+    {
+        public uint size;
+        public mln_render_target_extent extent;
+        public mln_metal_context_descriptor context; // device populated on iOS
     }
 
     internal partial struct mln_texture_image_info

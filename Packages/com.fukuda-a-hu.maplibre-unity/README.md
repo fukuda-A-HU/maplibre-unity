@@ -1,8 +1,8 @@
 # MapLibre for Unity (Package)
 
-Experimental MapLibre Native bindings for Unity. Windows x64 is supported; Android arm64 is experimental
-(the C# layer is implemented, but the native binary is not bundled - see
-[Android](#android-arm64-experimental) below).
+Experimental MapLibre Native bindings for Unity. Windows x64 is supported; Android arm64 and iOS arm64 are
+experimental (the C# layer is implemented for both, but the native binaries are not bundled - see
+[Android](#android-arm64-experimental) / [iOS](#ios-arm64-experimental-metal) below).
 
 See the [repository README](https://github.com/fukuda-A-HU/maplibre-unity) for installation instructions, a quick
 start guide, and architecture notes.
@@ -20,12 +20,14 @@ once the map starts rendering.
 
 - `Runtime/MapLibreMapView.cs` - `MonoBehaviour` that renders a MapLibre map into a `Texture2D`.
 - `Runtime/MapLibreMapHandle.cs` - Unity-independent core wrapping the native `mln_*` C API lifecycle.
-- `Runtime/Native/` - P/Invoke declarations, native structs/enums, and the WGL (Windows) / EGL (Android)
-  shared-context helpers.
+- `Runtime/Native/` - P/Invoke declarations, native structs/enums, and the WGL (Windows) / EGL (Android) /
+  Metal (iOS) shared-context helpers.
 - `Runtime/Plugins/Windows/x86_64/maplibre-native-c.dll` - bundled native binary (see `THIRD_PARTY_NOTICES.md` at the
   repository root for license information).
 - `Runtime/Plugins/Android/arm64-v8a/` - Android native binary directory. **Not bundled** - see
   [Android](#android-arm64-experimental) below.
+- `Runtime/Plugins/iOS/` - iOS native static library directory plus the bundled `MapLibreUnityMetalBridge.mm`
+  Objective-C bridge. Library **not bundled** - see [iOS](#ios-arm64-experimental-metal) below.
 - `Runtime/Geo/GeoMath.cs` - WGS84/ECEF/ENU geodesy and Web Mercator tile math shared by the 3D terrain and PLATEAU
   layers.
 - `Runtime/Terrain/GsiTerrainLayer.cs` - `MonoBehaviour` that streams GSI elevation + aerial photo tiles into a
@@ -80,3 +82,19 @@ build target.
 [maplibre-native-ffi](https://github.com/maplibre/maplibre-native-ffi) and placed under
 `Runtime/Plugins/Android/arm64-v8a/` - see that folder's `README.md` for build instructions and the required
 Unity PluginImporter settings.
+
+## iOS arm64 (Experimental, Metal)
+
+As of v0.5.0, the C# layer supports iOS via Metal (`MetalDeviceContext`). iOS's maplibre-native-ffi build is
+Metal-only (there is no OpenGL/EGL context provider on iOS), so `MapLibreMapHandle` attaches a Metal
+session-owned texture target (`mln_metal_owned_texture_attach`) instead of the WGL/EGL `mln_opengl_owned_texture_attach`
+path used on Windows/Android; frame readback still goes through the same backend-agnostic
+`mln_texture_read_premultiplied_rgba8` call. Since iOS plugins are statically linked into the player binary,
+P/Invoke targets `__Internal` on iOS instead of a named library.
+
+**The native static library is not bundled.** `libmaplibre-native-c.a` (the `ios-arm64-metal` variant) must be
+built on macOS from [maplibre-native-ffi](https://github.com/maplibre/maplibre-native-ffi) and placed under
+`Runtime/Plugins/iOS/` - see that folder's `README.md` for build instructions and the required Unity
+PluginImporter settings. The bundled `MapLibreUnityMetalBridge.mm` in that same folder is compiled into the
+Xcode project automatically and supplies the `MTLDevice` used by `MetalDeviceContext`, since Unity does not
+expose one to C#.

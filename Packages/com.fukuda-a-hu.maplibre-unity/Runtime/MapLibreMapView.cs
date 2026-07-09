@@ -3,7 +3,8 @@ using UnityEngine;
 namespace MapLibre.Unity
 {
     /// <summary>
-    /// Renders a MapLibre Native map into a <see cref="Texture2D"/>. Windows x64 and Android (arm64) only.
+    /// Renders a MapLibre Native map into a <see cref="Texture2D"/>. Windows x64, Android (arm64), and iOS
+    /// (arm64) only.
     /// </summary>
     public class MapLibreMapView : MonoBehaviour
     {
@@ -42,8 +43,8 @@ namespace MapLibre.Unity
 
         private void OnEnable()
         {
-#if !(UNITY_EDITOR_WIN || (UNITY_STANDALONE_WIN && !UNITY_EDITOR) || (UNITY_ANDROID && !UNITY_EDITOR))
-            Debug.LogWarning("MapLibreMapView: only Windows x64 and Android are supported. Disabling component.");
+#if !(UNITY_EDITOR_WIN || (UNITY_STANDALONE_WIN && !UNITY_EDITOR) || (UNITY_ANDROID && !UNITY_EDITOR) || (UNITY_IOS && !UNITY_EDITOR))
+            Debug.LogWarning("MapLibreMapView: only Windows x64, Android, and iOS are supported. Disabling component.");
             enabled = false;
             return;
 #else

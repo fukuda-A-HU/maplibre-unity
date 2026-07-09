@@ -3,9 +3,9 @@ using System.Runtime.InteropServices;
 using MapLibre.Unity.Native;
 using UnityEngine;
 
-// Unity-independent core wrapping the mln_* native C API lifecycle (runtime -> map -> WGL-shared render session).
-// UnityEngine.Debug is used for logging for simplicity; this class otherwise has no dependency on MonoBehaviour
-// or any other Unity engine object.
+// Unity-independent core wrapping the mln_* native C API lifecycle (runtime -> map -> WGL/EGL-shared render
+// session on Windows/Android, or a Metal-owned texture session on iOS). UnityEngine.Debug is used for logging
+// for simplicity; this class otherwise has no dependency on MonoBehaviour or any other Unity engine object.
 //
 // This type is public (rather than internal) specifically so that Assets/Editor/MapLibreSmokeTest.cs - which
 // lives in a separate assembly from this package's Runtime asmdef - can instantiate it directly without a
@@ -23,6 +23,8 @@ namespace MapLibre.Unity
         private WglSharedContext _wglContext;
 #elif UNITY_ANDROID && !UNITY_EDITOR
         private EglSharedContext _eglContext;
+#elif UNITY_IOS && !UNITY_EDITOR
+        private MetalDeviceContext _metalContext;
 #endif
         private mln_runtime* _runtime;
         private mln_map* _map;
@@ -48,8 +50,10 @@ namespace MapLibre.Unity
                 handle._wglContext = new WglSharedContext();
 #elif UNITY_ANDROID && !UNITY_EDITOR
                 handle._eglContext = new EglSharedContext();
+#elif UNITY_IOS && !UNITY_EDITOR
+                handle._metalContext = new MetalDeviceContext();
 #else
-                throw new PlatformNotSupportedException("MapLibre for Unity currently supports Windows x64 and Android only.");
+                throw new PlatformNotSupportedException("MapLibre for Unity currently supports Windows x64, Android, and iOS only.");
 #endif
 
                 handle.CreateRuntime();
@@ -108,6 +112,20 @@ namespace MapLibre.Unity
 
         private void AttachTexture(int width, int height, double scaleFactor)
         {
+#if UNITY_IOS && !UNITY_EDITOR
+            // iOS is Metal-only (no OpenGL/EGL context provider), so it attaches via a distinct descriptor/API
+            // pair rather than another mln_opengl_context_platform case.
+            mln_metal_owned_texture_descriptor metalDescriptor = NativeMethods.mln_metal_owned_texture_descriptor_default();
+            metalDescriptor.extent.width = (uint)width;
+            metalDescriptor.extent.height = (uint)height;
+            metalDescriptor.extent.scale_factor = scaleFactor;
+            metalDescriptor.context.device = (void*)_metalContext.Device;
+
+            mln_render_session* metalSession;
+            mln_status metalStatus = NativeMethods.mln_metal_owned_texture_attach(_map, &metalDescriptor, &metalSession);
+            ThrowIfNotOk(metalStatus, "mln_metal_owned_texture_attach");
+            _session = metalSession;
+#else
             mln_opengl_owned_texture_descriptor descriptor = NativeMethods.mln_opengl_owned_texture_descriptor_default();
             descriptor.extent.width = (uint)width;
             descriptor.extent.height = (uint)height;
@@ -130,6 +148,7 @@ namespace MapLibre.Unity
             mln_status status = NativeMethods.mln_opengl_owned_texture_attach(_map, &descriptor, &session);
             ThrowIfNotOk(status, "mln_opengl_owned_texture_attach");
             _session = session;
+#endif
         }
 
         public void SetStyleUrl(string styleUrl)
@@ -398,6 +417,9 @@ namespace MapLibre.Unity
 #elif UNITY_ANDROID && !UNITY_EDITOR
             _eglContext?.Dispose();
             _eglContext = null;
+#elif UNITY_IOS && !UNITY_EDITOR
+            _metalContext?.Dispose();
+            _metalContext = null;
 #endif
 
             GC.SuppressFinalize(this);

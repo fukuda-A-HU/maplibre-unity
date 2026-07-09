@@ -2,6 +2,22 @@
 
 All notable changes to this package will be documented in this file.
 
+## [0.5.0] - 2026-07-09
+
+### Added
+
+- iOS (arm64, Metal) support in the C# layer. `MapLibreMapHandle` attaches a
+  Metal session-owned texture target (`mln_metal_owned_texture_attach`) on iOS;
+  frame readback reuses the same backend-agnostic
+  `mln_texture_read_premultiplied_rgba8` path used on Windows/Android.
+- `MetalDeviceContext` plus a bundled Objective-C bridge
+  (`Runtime/Plugins/iOS/MapLibreUnityMetalBridge.mm`) that obtains the system
+  default `MTLDevice`, since Unity does not expose one to C#.
+- On iOS, P/Invoke targets `__Internal` (static linking). The native static
+  library `libmaplibre-native-c.a` is **not** bundled and must be built from
+  maplibre-native-ffi (ios-arm64-metal variant) and placed under
+  `Runtime/Plugins/iOS/` - see that folder's README.md.
+
 ## [0.4.0] - 2026-07-08
 
 ### Added
